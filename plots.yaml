@@ -1,0 +1,12 @@
+path: yolo_layout
+train: images/train
+val: images/val
+
+names:
+  0: plot_area
+  1: legend
+  2: x_label
+  3: y_label
+  4: x_ticks
+  5: y_ticks
+  6: title
