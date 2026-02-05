@@ -213,8 +213,8 @@ Project Goal
 
 Build a fully automated system that turns scientific plot images into:
 
-📈 Structured numeric data
+Structured numeric data
 
-🧠 Interpretable insights
+Interpretable insights
 
-🤖 Machine-readable understanding
+Machine-readable understanding
