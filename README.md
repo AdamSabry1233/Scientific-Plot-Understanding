@@ -1,8 +1,8 @@
 Scientific Plot Understanding Pipeline
 
-This repository builds an end-to-end system for understanding scientific plots — from raw images to reconstructed data and semantic meaning.
+This repository builds an end-to-end system for understanding scientific plots — from raw images to reconstructed numeric data and semantic meaning.
 
-The system is modular and designed to scale from synthetic training data to real-world plots.
+The system is modular, scalable, and designed to transition smoothly from synthetic training data to real-world plots.
 
 What This Project Does
 
@@ -19,7 +19,7 @@ Reconstruct numeric data
 Understand the plot’s meaning
 
 Pipeline Overview
-Stage 0 — Dataset Engine (DONE)
+Stage 0 — Dataset Engine  DONE
 
 Goal: Generate unlimited, perfectly labeled training data
 
@@ -38,16 +38,15 @@ Layout + text metadata
 Output:
 
 output/images/
-
 output/labels/
+output/ground_truth/   (rich JSON)
 
-output/ground_truth/ (rich JSON)
 
 This stage feeds all future models.
 
-Stage 1 — Layout Detection (YOLO) (DONE)
+Stage 1 — Layout Detection (YOLO) DONE
 
-Goal: Find where elements are
+Goal: Find where plot elements are
 
 YOLO detects:
 
@@ -57,10 +56,10 @@ Legend
 
 Axis-related regions
 
-Input: plot image
-Output: bounding boxes for layout elements
+Input: Plot image
+Output: Bounding boxes for layout elements
 
-Stage 2 — OCR (Text Extraction) (IN PROGRESS)
+Stage 2 — OCR (Text Extraction) IN PROGRESS
 
 Goal: Read plot text
 
@@ -74,7 +73,7 @@ Tick values
 
 Legend labels
 
-Output example:
+Example output:
 
 "x_label": "Time (s)"
 "y_label": "Velocity"
@@ -85,7 +84,7 @@ Stage 3 — Curve Segmentation
 
 Goal: Identify curve pixels
 
-Segmentation model outputs a binary mask of curve pixels inside the plot area.
+A segmentation model outputs a binary mask of curve pixels inside the plot area.
 
 Stage 4 — Pixel → Data Reconstruction
 
@@ -157,15 +156,16 @@ Fonts, styles, noise, grids, scales, legends, titles
 
 build_yolo_dataset.py
 
-Dataset builder for YOLO
+YOLO dataset builder
 
 Converts generated ground truth into YOLO training format
 
 Splits data into:
 
-images/train, images/val
-
-labels/train, labels/val
+images/train
+images/val
+labels/train
+labels/val
 
 plots.yaml
 
@@ -209,12 +209,12 @@ Visualizes bounding boxes
 
 Used to verify correctness of generated labels and YOLO outputs
 
-Goal
+Project Goal
 
 Build a fully automated system that turns scientific plot images into:
 
-Structured numeric data
+📈 Structured numeric data
 
-Interpretable insights
+🧠 Interpretable insights
 
-Machine-readable understanding
+🤖 Machine-readable understanding
