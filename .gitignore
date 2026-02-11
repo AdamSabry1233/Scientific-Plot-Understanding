@@ -1,0 +1,8 @@
+# Ignore the YOLO layout directory
+yolo_layout/
+# Ignore the output directory
+output/
+# Ignore the debug_vis directory
+debug_vis/
+# Ignore the _pycache__ directory
+__pycache__/
