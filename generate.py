@@ -3,14 +3,19 @@ import numpy as np
 import json
 import random
 from pathlib import Path
+import cv2
 
 OUT_IMG = Path("output/images")
 OUT_LBL = Path("output/labels")
 OUT_JSON = Path("output/ground_truth")
+OUT_MASK = Path("output/curve_masks")
+
 
 OUT_IMG.mkdir(parents=True, exist_ok=True)
 OUT_LBL.mkdir(parents=True, exist_ok=True)
 OUT_JSON.mkdir(parents=True, exist_ok=True)
+OUT_MASK.mkdir(parents=True, exist_ok=True)
+
 
 CLASSES = {
     "plot_area": 0,
@@ -129,35 +134,34 @@ def maybe_log_scale(ax):
     # We'll attempt y-log if y is positive; otherwise skip.
     pass
 
-def plot_line(ax, x):
+def plot_line(ax, x, fig):
     n = random.randint(1, 4)
     labels = []
+    line_objs = []
+
+    COLORS = ["blue", "orange", "green", "red"]
+
     for j in range(n):
         func = random.choice(LINE_FUNCS)
         shift = random.uniform(-2, 2)
         scale = random.uniform(0.5, 2.5)
 
         y = scale * func(x + shift)
+        y += np.random.normal(0, 0.03, size=len(x))
 
-        # noise + occasional outliers
-        noise = np.random.normal(0, random.uniform(0.01, 0.25), size=len(x))
-        y = y + noise
-
-        if maybe(ax, 0.15):
-            k = random.randint(2, 5)
-            idx = np.random.choice(len(x), size=k, replace=False)
-            y[idx] += np.random.normal(0, random.uniform(0.5, 2.0), size=k)
-
-        ax.plot(
+        line, = ax.plot(
             x, y,
-            linestyle=random.choice(STYLES),
-            marker=random.choice(MARKERS),
-            linewidth=random.uniform(1.0, 3.0),
-            alpha=random.uniform(0.75, 1.0),
-            markersize=random.uniform(3, 7)
+            linestyle="-",
+            marker=None,
+            linewidth=3,
+            color=COLORS[j % len(COLORS)]
         )
+
         labels.append(f"Line {j}")
-    return labels
+        line_objs.append(line)
+
+    return labels, line_objs
+
 
 def plot_scatter(ax, x):
     n = random.randint(1, 3)
@@ -219,40 +223,32 @@ def generate_plot(i, seed=None):
         np.random.seed(seed + i)
 
     fig, ax = plt.subplots(
-        figsize=(random.uniform(4.5, 7.5), random.uniform(3.2, 5.4)),
-        dpi=random.choice([100, 120, 150])
-    )
+    figsize=(6, 4),
+    dpi=150
+)
+
 
     # global style knobs
-    plt.rcParams["font.family"] = random.choice(FONTS)
+    plt.rcParams["font.family"] = "DejaVu Sans"
+    plt.rcParams["font.size"] = 12
+    ax.tick_params(labelsize=11)
+
     ax.set_facecolor("white")
     fig.patch.set_facecolor("white")
+    ax.grid(False)
 
     # Choose plot type
-    plot_type = random.choices(
-        population=["line", "scatter", "bar", "step", "stem", "errorbar", "hist"],
-        weights=[0.45, 0.18, 0.12, 0.08, 0.06, 0.06, 0.05],
-        k=1
-    )[0]
+    plot_type = "line"
 
     # x-range for most plot types
-    x = np.linspace(random.uniform(-10, 0), random.uniform(10, 30), random.randint(80, 220))
+    start = random.choice([-20, -10, 0])
+    end = random.choice([20, 30, 40])
+    x = np.linspace(start, end, random.randint(100, 200))
 
-    legend_labels = []
-    if plot_type == "line":
-        legend_labels = plot_line(ax, x)
-    elif plot_type == "scatter":
-        legend_labels = plot_scatter(ax, x)
-    elif plot_type == "bar":
-        legend_labels = plot_bar(ax)
-    elif plot_type == "step":
-        legend_labels = plot_step(ax, x)
-    elif plot_type == "stem":
-        legend_labels = plot_stem(ax, x)
-    elif plot_type == "errorbar":
-        legend_labels = plot_errorbar(ax, x)
-    elif plot_type == "hist":
-        legend_labels = plot_hist(ax)
+
+    legend_labels, line_objs = plot_line(ax, x, fig)
+
+
 
     ax.set_xlabel(random.choice(X_LABELS))
     ax.set_ylabel(random.choice(Y_LABELS))
@@ -262,20 +258,47 @@ def generate_plot(i, seed=None):
         ax.set_title(title)
 
     # Grid sometimes
-    if maybe(ax, 0.6):
-        ax.grid(True)
+    ax.grid(False)
+
 
     # scientific notation sometimes
-    maybe_sci_notation(ax)
+    #maybe_sci_notation(ax)
 
     # ticks formatting and forcing
     force_tick_text(ax)
-    set_tick_style(ax)
+    #set_tick_style(ax)
 
     # Legend sometimes absent (real-world!)
     has_legend = (len(legend_labels) > 0) and maybe(ax, 0.85)
     if has_legend:
         ax.legend(legend_labels, loc=random.choice(LEG_LOCS), framealpha=random.uniform(0.6, 1.0))
+
+    from matplotlib.ticker import MaxNLocator, FormatStrFormatter
+
+    ax.xaxis.set_major_locator(MaxNLocator(nbins=6))
+    ax.yaxis.set_major_locator(MaxNLocator(nbins=6))
+
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+
+
+        # Align axis limits to tick spacing
+
+    xmin, xmax = ax.get_xlim()
+    ymin, ymax = ax.get_ylim()
+
+    xmin = int(np.floor(xmin / 5) * 5)
+    xmax = int(np.ceil(xmax / 5) * 5)
+    ymin = int(np.floor(ymin / 5) * 5)
+    ymax = int(np.ceil(ymax / 5) * 5)
+
+    ax.set_xlim(xmin, xmax)
+    ax.set_ylim(ymin, ymax)
+
+
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+
 
     # IMPORTANT: lock layout BEFORE reading bboxes
     fig.tight_layout(rect=[0, 0, 1, 0.95])
@@ -283,6 +306,28 @@ def generate_plot(i, seed=None):
     renderer = fig.canvas.get_renderer()
 
     W, H = fig.canvas.get_width_height()
+
+    for idx, line in enumerate(line_objs):
+        mask = np.zeros((H, W), dtype=np.uint8)
+
+        path = line.get_path().transformed(line.get_transform())
+        verts = path.vertices.astype(int)
+
+        for k in range(len(verts) - 1):
+            cv2.line(
+                mask,
+                tuple(verts[k]),
+                tuple(verts[k+1]),
+                255,
+                thickness=4
+            )
+
+        mask = np.flipud(mask)
+
+        mask_path = OUT_MASK / f"plot_{i:06d}_curve_{idx}.png"
+        cv2.imwrite(str(mask_path), mask)
+
+
 
     # --- pixel bboxes in canvas coordinate space ---
     plot_bbox = ax.get_window_extent(renderer=renderer).extents
