@@ -1,8 +1,36 @@
-# Ignore the YOLO layout directory
+# YOLO layout dataset directory
 yolo_layout/
-# Ignore the output directory
+
+# Generated plot output directories
 output/
-# Ignore the debug_vis directory
+synthetic_output/
+kaggle_output/
+
+# Debug visualization outputs
 debug_vis/
-# Ignore the _pycache__ directory
+
+# Python bytecode cache
 __pycache__/
+
+# Per-dataset YOLO training directories
+yolo_original/
+yolo_synthetic/
+yolo_kaggle/
+
+# Large-scale (10k) YOLO training directory
+yolo_large_10k/
+
+# Ultralytics training runs (checkpoints, logs, weights)
+runs/
+
+# Combined-dataset YOLO training directory
+yolo_combined/
+
+# Large-scale combined dataset output (5k synthetic + 5k kaggle)
+large_combined_output/
+
+# YOLO dataset config files (auto-generated)
+*.yaml
+
+# Trained model weight files
+*.pt
